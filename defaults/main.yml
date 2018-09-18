@@ -8,3 +8,4 @@ dracut_crypt_ssh_conf:
 use_dhcp: false
 logical_volumes: []
 provider: hetzner
+chroot_service_mgr: auto

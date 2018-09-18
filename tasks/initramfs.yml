@@ -8,29 +8,33 @@
 - name: Ensure package.accept_keywords directory exist
   file:
     state: directory
-    path: /mnt/gentoo/etc/portage/package.accept_keywords
+    path: /etc/portage/package.accept_keywords
+  become: yes
 
 - name: Create accept_keywords for dracut-crypt-ssh
   copy:
     content: |
       =sys-kernel/dracut-crypt-ssh-1.0.6-r1 ~amd64
-    dest: /mnt/gentoo/etc/portage/package.accept_keywords/dracut
+    dest: /etc/portage/package.accept_keywords/dracut
   become: yes
 
 - name: Install dracut-crypt-ssh
-  command: chroot /mnt/gentoo/ bash -c 'source /etc/profile; emerge sys-kernel/dracut-crypt-ssh'
-  args:
-    creates: /mnt/gentoo/usr/lib64/dracut/modules.d/60crypt-ssh
+  package:
+    name: sys-kernel/dracut-crypt-ssh
+    state: present
   become: yes
 
 - name: Check if openssh has bindist USE-flag
-  command: chroot /mnt/gentoo/ bash -c 'source /etc/profile; emerge --info net-misc/openssh'
+  command: emerge --info net-misc/openssh
   register: ssh_bindist
   changed_when: False
   check_mode: no
 
 - name: Recompile openssh
-  command: chroot /mnt/gentoo/ bash -c 'source /etc/profile; emerge net-misc/openssh'
+  portage:
+    package: net-misc/openssh
+    newuse: yes
+    update: yes
   when: not "-bindist" in ssh_bindist.stdout
   become: yes
   # Rebuild net-misc/openssh will also rebuild dev-libs/openssl
@@ -42,7 +46,7 @@
 - name: Get linked version
   register: linked_kernel_version_src
   stat: 
-    path: /mnt/gentoo/usr/src/linux
+    path: /usr/src/linux
   changed_when: false
   check_mode: no
 
@@ -53,19 +57,10 @@
 - debug:
     var: linked_kernel_version
 
-# Need this before the initramfs is created also vital to login to the decrypted system
-- name: Set authorized key for user root copying it from current user
-  authorized_key:
-    user: root
-    state: present
-    key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}"
-    path: /mnt/gentoo/root/.ssh/authorized_keys
-  become: yes
-
 - name: Copy ssh host keys
   copy:
     src: "{{ item.src }}"
-    dest: /mnt/gentoo{{ item.dest }}
+    dest: "{{ item.dest }}"
     mode: "{{ item.mode | default('0600') }}"
   with_items: "{{ keys_to_copy }}"
   become: yes
@@ -74,9 +69,10 @@
   lineinfile:
     line: '{{ item.key }}="{{ item.value }}"'
     regexp: '^{{ item.key }}'
-    path: /mnt/gentoo/etc/dracut.conf.d/crypt-ssh.conf
+    path: /etc/dracut.conf.d/crypt-ssh.conf
   with_dict: "{{ dracut_crypt_ssh_conf }}"
+  become: yes
 
 - name: Create initramfs for {{ linked_kernel_version }}
-  command: chroot /mnt/gentoo/ bash -c 'source /etc/profile; dracut --force --host-only --kver {{ linked_kernel_version }}'
+  command: dracut --force --host-only --kver {{ linked_kernel_version }}
   become: yes

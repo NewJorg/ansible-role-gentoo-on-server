@@ -1,36 +1,49 @@
 ---
 - name: eselect profile list
-  command: chroot /mnt/gentoo bash -c 'source /etc/profile; eselect profile list'
+  command: eselect profile list
   register: profile_list
   changed_when: False
   check_mode: no
 
 - name: Create kernel default config
-  command: chroot /mnt/gentoo bash -c 'source /etc/profile; cd /usr/src/linux; make defconfig'
+  command: make defconfig
   args:
+    chdir: /usr/src/linux
     creates: /usr/src/linux/.config
   become: yes
 
 - name: Copy kernel config fragment
   template:
     src: kernel-config.fragment.j2
-    dest: /mnt/gentoo/usr/src/kernel-config.fragment
+    dest: /usr/src/kernel-config.fragment
+  become: yes
 
 - name: Apply code fragment
-  command: chroot /mnt/gentoo bash -c 'source /etc/profile; cd /usr/src/linux; scripts/kconfig/merge_config.sh -n .config ../kernel-config.fragment'
+  command: scripts/kconfig/merge_config.sh -n .config ../kernel-config.fragment
+  args:
+    chdir: /usr/src/linux
+  become: yes
 
 - name: Run make oldconfig
-  command: chroot /mnt/gentoo bash -c 'source /etc/profile; cd /usr/src/linux; make oldconfig'
+  command: make oldconfig
+  args:
+    chdir: /usr/src/linux
   become: yes
 
 - name: Make Kernel
-  command: chroot /mnt/gentoo/ bash -c 'source /etc/profile; cd /usr/src/linux; make -j{{ ansible_processor_vcpus+1 }}'
+  command: make -j{{ ansible_processor_vcpus+1 }}
+  args:
+    chdir: /usr/src/linux
   become: yes
 
 - name: Make Module Install
-  command: chroot /mnt/gentoo/ bash -c 'source /etc/profile; cd /usr/src/linux; make modules_install'
+  command: make modules_install
+  args:
+    chdir: /usr/src/linux
   become: yes
 
 - name: Make Install
-  command: chroot /mnt/gentoo/ bash -c 'source /etc/profile; cd /usr/src/linux; make install'
+  command: make install
+  args:
+    chdir: /usr/src/linux
   become: yes

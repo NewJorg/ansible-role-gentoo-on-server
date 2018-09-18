@@ -1,4 +1,32 @@
 ---
+
+- name: Enable chroot in sshd
+  blockinfile:
+    path: /etc/ssh/sshd_config
+    block: |
+      Port 223
+      Match LocalPort 223
+        ChrootDirectory /mnt/gentoo
+        X11Forwarding no
+  notify: Restart sshd
+
+- name: Use internal-sftp to make it work in chroot
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: ^Subsystem sftp .*
+    line: Subsystem sftp internal-sftp
+  notify: Restart sshd
+
+- meta: flush_handlers
+
+# Need this before the initramfs is created also vital to login to the decrypted system
+- name: Set authorized key for user root copying it from current user
+  authorized_key:
+    user: root
+    state: present
+    key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}"
+    path: /mnt/gentoo/root/.ssh/authorized_keys
+
 - name: Copy DNS info
   copy:
     src: /etc/resolv.conf

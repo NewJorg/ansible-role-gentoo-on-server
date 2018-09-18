@@ -1,6 +1,6 @@
 ---
 - name: Get predictable network interface name
-  command: chroot /mnt/gentoo/ bash -c 'source /etc/profile; udevadm test-builtin net_id /sys/class/net/{{ ansible_default_ipv4.interface }} | grep -E "ID_NET_NAME_(ONBOARD|SLOT|PATH)"'
+  shell: udevadm test-builtin net_id /sys/class/net/{{ ansible_default_ipv4.interface }} | grep -E "ID_NET_NAME_(ONBOARD|SLOT|PATH)"
   register: network_interface
   become: yes
   check_mode: no
@@ -14,13 +14,15 @@
 - name: Create interface service
   file:
     src: net.lo
-    dest: /mnt/gentoo/etc/init.d/net.{{ network_intf }}
+    dest: /etc/init.d/net.{{ network_intf }}
     state: link
+  become: yes
 
 - name: Enable default run for network services
-  command: chroot /mnt/gentoo/ bash -c 'source /etc/profile; rc-update add {{ item }} default'
-  args:
-    creates: /mnt/gentoo/etc/runlevels/default/{{ item }}
+  service:
+    name: "{{ item }}"
+    enabled: yes
+    use: "{{ chroot_service_mgr }}"
   with_items:
   - sshd
   - net.{{ network_intf }}
@@ -30,4 +32,4 @@
     content: |
       config_{{ network_intf }}="noop {{ ansible_default_ipv4.address }}/{{ (ansible_default_ipv4.address+"/"+ansible_default_ipv4.netmask)|ipaddr('prefix') }}"
       routes_{{ network_intf }}="default via {{ ansible_default_ipv4.gateway }}"
-    dest: /mnt/gentoo/etc/conf.d/net
+    dest: /etc/conf.d/net

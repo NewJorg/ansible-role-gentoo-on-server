@@ -2,10 +2,16 @@
 - include: prepare.yml
   tags:
   - prepare_chroot
+  vars:
+    ansible_user: root
+    ansible_host_key_checking: false
+
 - include: chroot.yml
-- include: kernel.yml
-- include: initramfs.yml
-- include: network.yml
-- include: grub.yml
+  vars:
+    ansible_user: root
+    ansible_port: 223
+    ansible_host_key_checking: false
+    ansible_ssh_common_args: -o UserKnownHostsFile=/dev/null
+
 - include: reboot.yml
   when: provider == 'hetzner'

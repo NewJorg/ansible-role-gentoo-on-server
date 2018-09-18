@@ -1,9 +1,4 @@
 ---
-- name: Remount /dev to get /dev/mapper visible
-  command: mount --rbind /dev /mnt/gentoo/dev
-  args:
-    warn: False
-
 - name: Get luks uuid
   command: cryptsetup luksUUID /dev/disk/by-id/md-name-{{ inventory_hostname_short }}:crypt
   register: luks_uuid
@@ -20,7 +15,7 @@
 
 - name: Configure grub
   lineinfile:
-    path: /mnt/gentoo/etc/default/grub
+    path: /etc/default/grub
     line: "{{ item.line }}"
     regexp: "{{ item.regexp }}"
   with_items:
@@ -31,8 +26,9 @@
   become: yes
 
 - name: Install grub to boot drive
-  command: chroot /mnt/gentoo bash -c 'source /etc/profile; grub-install /dev/sda'
+  command: grub-install /dev/sda
+  become: yes
 
 - name: Make grub config
-  command: chroot /mnt/gentoo bash -c 'source /etc/profile; grub-mkconfig -o /boot/grub/grub.cfg'
+  command: grub-mkconfig -o /boot/grub/grub.cfg
   become: yes
