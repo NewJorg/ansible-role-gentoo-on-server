@@ -1,13 +1,7 @@
 ---
-- include: prepare_rescue.yml
-  when: provider == 'server4you'
-- include: setup_partitions.yml
-- include: setup_raid.yml
-- include: setup_crypt.yml
-- include: setup_lvm.yml
-- include: setup_filesystems.yml
-- include: prepare_stage3.yml
-- include: prepare_chroot.yml
+- include: prepare.yml
+  tags:
+  - prepare_chroot
 - include: chroot.yml
 - include: kernel.yml
 - include: initramfs.yml
