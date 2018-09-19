@@ -5,11 +5,10 @@
   changed_when: False
   check_mode: no
 
-- name: Copy kernel config
-  copy:
-    src: config-4.9.34-gentoo
-    dest: /mnt/gentoo/usr/src/linux/.config
-    force: no
+- name: Create kernel default config
+  command: chroot /mnt/gentoo bash -c 'source /etc/profile; cd /usr/src/linux; make defconfig'
+  args:
+    creates: /usr/src/linux/.config
   become: yes
 
 - name: Copy kernel config fragment
