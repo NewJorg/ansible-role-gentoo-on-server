@@ -3,6 +3,10 @@
   package:
     name: "{{ item }}"
     state: present
+  register: package_rescue
+  retries: 10
+  delay: 10
+  until: package_rescue is success
   with_items:
   - cryptsetup-bin
   - dmsetup
