@@ -1,15 +1,11 @@
 ---
-# Will be installed with dracut-crypt-ssh
-#- name: Install dracut
-#  command: chroot /mnt/gentoo/ bash -c 'source /etc/profile; emerge dracut'
-#  args:
-#    creates: /mnt/gentoo/usr/bin/dracut
-
 - name: Ensure package.accept_keywords directory exist
   file:
     state: directory
     path: /etc/portage/package.accept_keywords
   become: yes
+
+# dracut will be installed with dracut-crypt-ssh
 
 - name: Create accept_keywords for dracut-crypt-ssh
   copy:
