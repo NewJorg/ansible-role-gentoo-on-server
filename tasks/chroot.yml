@@ -18,6 +18,28 @@
     name: app-admin/sudo
     state: present
 
+- name: Configure root mount point
+  mount:
+    path: /
+    src: LABEL=root
+    fstype: ext4
+    state: present
+
+- name: Configure boot mount point
+  mount:
+    path: /boot
+    src: LABEL=boot
+    fstype: ext4
+    state: present
+
+- name: Configure mount points for additional logical volumes
+  mount:
+    path: "{{ item.target }}"
+    src: LABEL={{ item.name }}
+    fstype: ext4
+    state: present
+  with_items: "{{ logical_volumes }}"
+
 - name: Set timezone
   copy:
     dest: /etc/timezone
