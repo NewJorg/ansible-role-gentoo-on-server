@@ -11,7 +11,7 @@
 - name: Install gentoolkit to have equery and be able to use package module
   command: emerge app-portage/gentoolkit
   args:
-    creates: /mnt/gentoo/usr/bin/equery
+    creates: /usr/bin/equery
 
 - name: Install sudo package
   package:
