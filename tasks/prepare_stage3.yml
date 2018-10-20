@@ -34,7 +34,8 @@
       - --numeric-owner
       creates: /mnt/gentoo/dev
   vars:
-    download_url: "{{ (downloads.content | regex_findall('(?:http://[^\"]*stage3-amd64(?:-[^\"]*)?-[0-9]{8}(?:T[0-9]{6}Z)?\\.tar\\.(?:bz2|xz))'))[0] }}"
+    release: "{{ (chroot_service_mgr == 'systemd') | ternary('-systemd', '(?:-[^\"]*)?') }}"
+    download_url: "{{ (downloads.content | regex_findall('(?:http://[^\"]*stage3-amd64' + release + '-[0-9]{8}(?:T[0-9]{6}Z)?\\.tar\\.(?:bz2|xz))'))[0] }}"
     basename_file: "{{ download_url | basename }}"
 
 - name: Modify make.conf

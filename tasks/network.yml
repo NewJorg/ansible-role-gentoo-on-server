@@ -17,15 +17,22 @@
     dest: /etc/init.d/net.{{ network_intf }}
     state: link
   become: yes
+  when: not (use_systemd | bool)
 
-- name: Enable default run for network services
+- name: Enable network service for {{ network_intf }}
+  service:
+    name: net.{{ network_intf }}
+    enabled: yes
+    use: "{{ chroot_service_mgr }}"
+  when: not (use_systemd | bool)
+
+- name: Enable sshd services
   service:
     name: "{{ item }}"
     enabled: yes
     use: "{{ chroot_service_mgr }}"
   with_items:
   - sshd
-  - net.{{ network_intf }}
 
 - name: Create network config
   copy:

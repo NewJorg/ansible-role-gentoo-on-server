@@ -20,6 +20,22 @@
     state: present
   become: yes
 
+- name: Set use flag for systemd
+  copy:
+    content: |
+      sys-apps/systemd cryptsetup
+    dest: /etc/portage/package.use/systemd
+  become: yes
+  when: use_systemd | bool
+
+- name: Recompile systemd
+  portage:
+    package: sys-apps/systemd
+    newuse: yes
+    update: yes
+  become: yes
+  when: use_systemd | bool
+
 - name: Check if openssh has bindist USE-flag
   command: emerge --info net-misc/openssh
   register: ssh_bindist
