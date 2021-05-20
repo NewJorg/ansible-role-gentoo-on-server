@@ -14,9 +14,9 @@
   check_mode: no
 
 # to fetch all download urls
-# {{ downloads.content | regex_findall('(?:http://[^\"]*stage3-amd64(?:-[^\"]*)?-[0-9]{8}\\.tar\\.bz2)') }}
+# {{ downloads.content | regex_findall('(?:https?://[^\"]*stage3-amd64(?:-[^\"]*)?-[0-9]{8}\\.tar\\.bz2)') }}
 # now it is only .xz and the name has added the timestamp also
-# "{{ downloads.content | regex_findall('(?:http://[^\"]*stage3-amd64(?:-[^\"]*)?-[0-9]{8}(?:T[0-9]{6}Z)?\\.tar\\.(?:bz2|xz))') }}"
+# "{{ downloads.content | regex_findall('(?:https?://[^\"]*stage3-amd64(?:-[^\"]*)?-[0-9]{8}(?:T[0-9]{6}Z)?\\.tar\\.(?:bz2|xz))') }}"
 - name: Install stage3
   block:
   - name: Download stage3
@@ -35,7 +35,7 @@
       creates: /mnt/gentoo/dev
   vars:
     release: "{{ (chroot_service_mgr == 'systemd') | ternary('-systemd', '(?:-[^\"]*)?') }}"
-    download_url: "{{ (downloads.content | regex_findall('(?:http://[^\"]*stage3-amd64' + release + '-[0-9]{8}(?:T[0-9]{6}Z)?\\.tar\\.(?:bz2|xz))'))[0] }}"
+    download_url: "{{ (downloads.content | regex_findall('(?:https?://[^\"]*stage3-amd64' + release + '-[0-9]{8}(?:T[0-9]{6}Z)?\\.tar\\.(?:bz2|xz))'))[0] }}"
     basename_file: "{{ download_url | basename }}"
 
 - name: Modify make.conf
