@@ -98,7 +98,7 @@
 
 - name: Add syslog-ng to Default Run Configuration
   service:
-    name: syslog-ng
+    name: "syslog-ng{{ (chroot_service_mgr == 'systemd') | ternary('@default', '') }}"
     enabled: yes
     use: "{{ chroot_service_mgr }}"
     # https://github.com/ansible/ansible/issues/41830
