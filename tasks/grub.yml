@@ -1,6 +1,6 @@
 ---
 - name: Get luks uuid
-  command: cryptsetup luksUUID /dev/disk/by-id/md-name-{{ inventory_hostname_short }}:crypt
+  command: cryptsetup -q luksUUID /dev/disk/by-id/md-name-{{ inventory_hostname_short }}:crypt
   register: luks_uuid
   changed_when: False
   check_mode: no
@@ -9,7 +9,7 @@
 - name: Assemble grub cmdline
   set_fact:
     grub_cmdline: >
-      rd.neednet=1 rd.luks.uuid={{ luks_uuid.stdout }}
+      rd.neednet=1 rd.luks.uuid={{ luks_uuid.stdout_lines | last }}
       rd.lvm.vg={{ inventory_hostname_short }}
       ip={% if use_dhcp %}dhcp{% else %}{{ ansible_default_ipv4.address }}::{{ ansible_default_ipv4.gateway }}:{{ ansible_default_ipv4.netmask }}:{{ inventory_hostname_short }}:{{ network_intf }}:off{% endif %}
 
