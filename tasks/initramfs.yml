@@ -10,7 +10,7 @@
 - name: Create accept_keywords for dracut-crypt-ssh
   copy:
     content: |
-      =sys-kernel/dracut-crypt-ssh-1.0.6-r1 ~amd64
+      =sys-kernel/dracut-crypt-ssh-1.0.7 ~amd64
     dest: /etc/portage/package.accept_keywords/dracut
   become: yes
 
@@ -18,6 +18,14 @@
   package:
     name: sys-kernel/dracut-crypt-ssh
     state: present
+  become: yes
+
+- name: Install dhclient for dracut module network-legacy
+  package:
+    name: net-misc/dhcp
+    state: present
+  environment:
+    USE: -server
   become: yes
 
 - name: Set use flag for systemd
