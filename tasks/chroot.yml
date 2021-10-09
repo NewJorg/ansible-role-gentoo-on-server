@@ -82,6 +82,8 @@
 - name: Install system packages
   package:
     name: "{{ item.name }}"
+  environment:
+    USE: symlink
   with_items:
   - name: app-admin/logrotate
     creates: /mnt/gentoo/usr/bin/logrotate
