@@ -65,12 +65,21 @@
   become: yes
   when: locales is changed
 
-- name: Set hostname
+- name: Set hostname (openrc)
   copy:
     content: |
       hostname="{{ inventory_hostname_short }}"
     dest: /etc/conf.d/hostname
   become: yes
+  when: chroot_service_mgr == 'openrc'
+
+- name: Set hostname (systemd)
+  copy:
+    content: |
+      {{ inventory_hostname_short }}
+    dest: /etc/hostname
+  become: yes
+  when: chroot_service_mgr != 'openrc'
 
 - name: Set use flag for grub
   copy:
