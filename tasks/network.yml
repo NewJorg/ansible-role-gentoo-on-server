@@ -26,6 +26,13 @@
     use: "{{ chroot_service_mgr }}"
   when: not (use_systemd | bool)
 
+- name: Enable systemd-resolved service
+  service:
+    name: systemd-resolved
+    enabled: yes
+    use: "{{ chroot_service_mgr }}"
+  when: use_systemd | bool
+
 - name: Enable sshd services
   service:
     name: "{{ item }}"
