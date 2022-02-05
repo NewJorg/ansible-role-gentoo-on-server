@@ -1,11 +1,11 @@
 ---
-- name: Select only SATA disks
+- name: Select storage drives
   set_fact:
-    sata_disks: "[{% for device in ansible_devices %}
-      {% if ansible_devices[device].vendor == 'ATA' %}
-        '{{ device }}',
-      {% endif %}
-    {% endfor %}]"
+    storage_drives: "{{ ansible_devices | dict2items
+    | selectattr('value.model') | selectattr('value.links.ids')
+    | rejectattr('value.links.uuids') | rejectattr('value.holders')
+    | map(attribute='key') | sort | list }}"
+
 - name: Create new disc label and BIOS boot partition
   parted:
     device: "/dev/{{ item }}"
@@ -19,7 +19,7 @@
     part_start: 2048s
     part_end: 10239s
     unit: s
-  with_items: "{{ sata_disks }}"
+  with_items: "{{ storage_drives }}"
 - name: Create partition /boot
   parted:
     device: "/dev/{{ item }}"
@@ -33,7 +33,7 @@
     part_start: 10240s
     part_end: 1058815s
     unit: s
-  with_items: "{{ sata_disks }}"
+  with_items: "{{ storage_drives }}"
 - name: Create partition for crypt
   parted:
     device: "/dev/{{ item }}"
@@ -46,4 +46,6 @@
     - raid
     part_start: 1058816s
     unit: s
-  with_items: "{{ sata_disks }}"
+  with_items: "{{ storage_drives }}"
+- name: Setup after partitions are created
+  setup:

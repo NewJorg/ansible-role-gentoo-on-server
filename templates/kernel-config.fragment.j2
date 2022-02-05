@@ -25,3 +25,6 @@ CONFIG_MD_RAID1=y
 CONFIG_DM_CRYPT=y
 CONFIG_CRYPTO_ECB=y
 CONFIG_CRYPTO_XTS=y
+{% if storage_drives | select("match", 'nvme') | list | length > 0 %}
+CONFIG_BLK_DEV_NVME=m
+{% endif %}

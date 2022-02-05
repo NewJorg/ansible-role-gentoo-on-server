@@ -5,13 +5,21 @@
   changed_when: False
 
 - name: Create raid 1 for boot
-  command: mdadm --create /dev/md/boot --run --name={{ inventory_hostname_short }}:boot --metadata=1.2 --level=raid1 --raid-devices=2 /dev/sda2 /dev/sdb2
+  vars:
+    partition: 2
+    jq: "[?contains(value, '{{ ansible_device_links.ids[storage_drives[0]][0] }}-part{{ partition }}') || contains(value, '{{ ansible_device_links.ids[storage_drives[1]][0] }}-part{{ partition }}')].key"
+    parts: "{{ ansible_device_links.ids | dict2items | json_query(jq) | sort }}"
+  command: mdadm --create /dev/md/boot --run --name={{ inventory_hostname_short }}:boot --metadata=1.2 --level=raid1 --raid-devices=2 /dev/{{ parts[0] }} /dev/{{ parts[1] }}
   when:
-  - raid_stat.stdout.find('sda2') == -1
-  - raid_stat.stdout.find('sdb2') == -1
+  - raid_stat.stdout.find(parts[0]) == -1
+  - raid_stat.stdout.find(parts[1]) == -1
 
 - name: Create raid 1 for crypt
-  command: mdadm --create /dev/md/crypt --run --name={{ inventory_hostname_short }}:crypt --metadata=1.2 --level=raid1 --raid-devices=2 /dev/sda3 /dev/sdb3
+  vars:
+    partition: 3
+    jq: "[?contains(value, '{{ ansible_device_links.ids[storage_drives[0]][0] }}-part{{ partition }}') || contains(value, '{{ ansible_device_links.ids[storage_drives[1]][0] }}-part{{ partition }}')].key"
+    parts: "{{ ansible_device_links.ids | dict2items | json_query(jq) | sort }}"
+  command: mdadm --create /dev/md/crypt --run --name={{ inventory_hostname_short }}:crypt --metadata=1.2 --level=raid1 --raid-devices=2 /dev/{{ parts[0] }} /dev/{{ parts[1] }}
   when:
-  - raid_stat.stdout.find('sda3') == -1
-  - raid_stat.stdout.find('sdb3') == -1
+  - raid_stat.stdout.find(parts[0]) == -1
+  - raid_stat.stdout.find(parts[1]) == -1
